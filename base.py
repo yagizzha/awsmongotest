@@ -10,7 +10,7 @@ import dns.resolver
 dns.resolver.default_resolver=dns.resolver.Resolver(configure=False)
 dns.resolver.default_resolver.nameservers=['8.8.8.8']
 
-#json.JSONEncoder.default = lambda self,obj: (obj.isoformat() if isinstance(obj, datetime.datetime) else None)
+#json.JSONEncoder.default = lambda self,obj: (obj if isinstance(obj, datetime.datetime) else None)
 app = Flask(__name__)
 DB_URI="mongodb+srv://yagizzha:asddsaasd1@cluster0.rexda.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"
 app.config["MONGODB_HOST"]=DB_URI
@@ -40,7 +40,7 @@ class subscribers(db.Document):
     HWID=db.StringField()
     custType=db.StringField()
     idkey=db.StringField()
-    lastDate=db.DateTimeField(default=datetime.datetime.now().isoformat())
+    lastDate=db.DateTimeField(default=datetime.datetime.now())
     versionKey=False
     def to_json(self):
         return {
@@ -52,7 +52,7 @@ class subscribers(db.Document):
 
 @app.route('/subscribers/testing',methods=['POST'])
 def db_populate():
-    print(datetime.datetime.now().isoformat())
+    print(datetime.datetime.now())
     content_type = request.headers.get('Content-Type')
     if (content_type == 'application/json'):
         jsonfile = request.json
@@ -105,7 +105,7 @@ def subpatch():
         jsonfile = request.json
         obj=subscribers.objects(HWID=jsonfile["HWID"]).first()
         obj.custType=jsonfile["custType"]
-        obj.lastDate=datetime.datetime.now().isoformat()
+        obj.lastDate=datetime.datetime.now()
         returnobj=obj.save()
         return make_response(jsonify(returnobj.to_json()),201)
     else:
