@@ -40,7 +40,7 @@ class subscribers(db.Document):
     HWID=db.StringField()
     custType=db.StringField()
     idkey=db.StringField()
-    lastDate=db.DateTimeField(default=datetime.datetime.utcnow().isoformat())
+    lastDate=db.DateTimeField(default=datetime.datetime.now().isoformat())
     versionKey=False
     def to_json(self):
         return {
@@ -52,6 +52,7 @@ class subscribers(db.Document):
 
 @app.route('/subscribers/testing',methods=['POST'])
 def db_populate():
+    print(datetime.datetime.now().isoformat())
     content_type = request.headers.get('Content-Type')
     if (content_type == 'application/json'):
         jsonfile = request.json
@@ -91,7 +92,7 @@ def getbyHWID():
         obj=subscribers.objects(HWID=jsonfile["HWID"]).first()
         if obj==None:
             return make_response(jsonify(False),404)
-        timeSpent=(datetime.datetime.utcnow()-obj.lastDate).total_seconds()/86400
+        timeSpent=(datetime.datetime.now()-obj.lastDate).total_seconds()/86400
         if obj.custType=="Perma" or (obj.custType=="Sub" and timeSpent<30) or (obj.custType=="Trial" and timeSpent<1):
             return make_response(jsonify(True),201)
         return make_response(jsonify(False),201)
@@ -104,7 +105,7 @@ def subpatch():
         jsonfile = request.json
         obj=subscribers.objects(HWID=jsonfile["HWID"]).first()
         obj.custType=jsonfile["custType"]
-        obj.lastDate=datetime.datetime.utcnow().isoformat()
+        obj.lastDate=datetime.datetime.now().isoformat()
         returnobj=obj.save()
         return make_response(jsonify(returnobj.to_json()),201)
     else:
