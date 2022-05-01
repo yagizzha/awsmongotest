@@ -134,5 +134,5 @@ def idkeyreturn(idkey):
 
 
 if __name__=='__main__':
-    app.run(port=2999)
+    app.run(host="http://ec2-18-220-112-181.us-east-2.compute.amazonaws.com",port=2999)
 
