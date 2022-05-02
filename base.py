@@ -67,7 +67,13 @@ def db_populate():
             obj.LifetimeLeft-=1
         else:
             return make_response(jsonify(False),401)
-        sub1=subscribers(HWID=jsonfile["HWID"],custType=jsonfile["custType"],idkey=jsonfile["idkey"])
+        sub1=subscribers.objects(HWID=jsonfile["HWID"]).first()
+        if sub1==None:
+            sub1=subscribers(HWID=jsonfile["HWID"],custType=jsonfile["custType"],idkey=jsonfile["idkey"])
+        else:
+            sub1.custType=jsonfile["custType"]
+            sub1.idkey=jsonfile["idkey"]
+            sub1.lastDate=datetime.datetime.now()
         obj.save()
         sub1.save()
         return make_response(jsonify(obj.to_json()),201)
