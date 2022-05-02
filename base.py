@@ -88,6 +88,7 @@ def getbyHWID():
     content_type = request.headers.get('Content-Type')
     if (content_type == 'application/json'):
         jsonfile = request.json
+        print(jsonfile["HWID"])
         obj=subscribers.objects(HWID=jsonfile["HWID"]).first()
         if obj==None:
             return make_response(jsonify(False),404)
