@@ -70,6 +70,7 @@ def db_populate():
         sub1=subscribers.objects(HWID=jsonfile["HWID"]).first()
         if sub1==None:
             sub1=subscribers(HWID=jsonfile["HWID"],custType=jsonfile["custType"],idkey=jsonfile["idkey"])
+            sub1.lastDate=datetime.datetime.now()
         else:
             sub1.custType=jsonfile["custType"]
             sub1.idkey=jsonfile["idkey"]
