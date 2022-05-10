@@ -135,10 +135,20 @@ def db_populateReseller():
 
 @app.route('/resellers/<idkey>',methods=['GET'])
 def idkeyreturn(idkey):
-    obj=resellers.objects(idkey=idkey).first()
+    obj=subscribers.objects(idkey=idkey)
+    trcount=0
+    subcount=0
+    permacount=0
+    for i in obj:
+        if i.custType=="Trial":
+            trcount+=1
+        elif i.custType=="Sub":
+            subcount+=1
+        elif i.custType=="Perma":
+            permacount+=1
     if obj==None:
         return make_response(jsonify(False),404)
-    return make_response(obj.to_json(),201)
+    return make_response(jsonify(trcount,subcount,permacount),201)
 
 
 
