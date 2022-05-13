@@ -145,6 +145,13 @@ def db_populateReseller():
 
 @app.route('/resellers/<idkey>',methods=['GET'])
 def idkeyreturn(idkey):
+    obj=resellers.objects(idkey=idkey).first()
+    if obj==None:
+        return make_response(jsonify(False),404)
+    return make_response(jsonify(obj.to_json()),201)
+
+@app.route('/resellerssold/<idkey>',methods=['GET'])
+def idkeyreturnsolds(idkey):
     if idkey=="All":
         obj=subscribers.objects()
     else:
@@ -161,8 +168,7 @@ def idkeyreturn(idkey):
             permacount+=1
     if obj==None:
         return make_response(jsonify(False),404)
-    return make_response(jsonify(trcount,subcount,permacount),201)
-
+    return make_response(jsonify(True,trcount,subcount,permacount),201)
 
 
 if __name__=='__main__':
