@@ -60,11 +60,11 @@ def db_populate():
         if obj==None:
             return make_response(jsonify(False),404)
         if obj.TrialLeft>0 and jsonfile["custType"]=="Trial":
-            obj.TrialLeft-=1
+            pass
         elif obj.SubscribeLeft>0 and jsonfile["custType"]=="Sub":
-            obj.SubscribeLeft-=1
+            pass
         elif obj.LifetimeLeft>0 and jsonfile["custType"]=="Perma":
-            obj.LifetimeLeft-=1
+            pass
         else:
             return make_response(jsonify(False),401)
         sub1=subscribers.objects(HWID=jsonfile["HWID"]).first()
@@ -75,9 +75,19 @@ def db_populate():
             sub1.custType=jsonfile["custType"]
             sub1.idkey=jsonfile["idkey"]
             sub1.lastDate=datetime.datetime.now()
-        obj.save()
         sub1.save()
-        return make_response(jsonify(obj.to_json()),201)
+        search=subscribers.objects(HWID=jsonfile["HWID"]).first()
+        if search==None:
+            return make_response(jsonify(False),405)
+        if search.HWID==jsonfile["HWID"]:
+            if obj.TrialLeft>0 and jsonfile["custType"]=="Trial":
+                obj.TrialLeft-=1
+            elif obj.SubscribeLeft>0 and jsonfile["custType"]=="Sub":
+                obj.SubscribeLeft-=1
+            elif obj.LifetimeLeft>0 and jsonfile["custType"]=="Perma":
+                obj.LifetimeLeft-=1
+            obj.save()
+        return make_response(jsonify((obj.to_json()),(search.to_json())),201)
     else:
         return 'Content-Type not supported!'
 
@@ -135,7 +145,10 @@ def db_populateReseller():
 
 @app.route('/resellers/<idkey>',methods=['GET'])
 def idkeyreturn(idkey):
-    obj=subscribers.objects(idkey=idkey)
+    if idkey=="All":
+        obj=subscribers.objects()
+    else:
+        obj=subscribers.objects(idkey=idkey)
     trcount=0
     subcount=0
     permacount=0
