@@ -99,6 +99,23 @@ def HWIDExists(HWID):
         return make_response(jsonify(False),404)
     return make_response(jsonify(True),201)
 
+@app.route('/trial/',methods=['POST'])
+def GetTrial():
+    content_type = request.headers.get('Content-Type')
+    if (content_type == 'application/json'):
+        jsonfile = request.json
+        obj=subscribers.objects(HWID=jsonfile["HWID"]).first()
+        if obj==None:
+            print(jsonfile["HWID"])
+            sub1=subscribers(HWID=jsonfile["HWID"],custType="Trial",idkey="TrialMaker")
+            sub1.lastDate=datetime.datetime.now()
+            sub1.save()
+            return make_response(jsonify(True),201)
+        else:
+            return make_response(jsonify(False),201)
+    else:
+        return 'Content-Type not supported!'
+
 
 @app.route('/subscribers/test',methods=['POST'])
 def getbyHWID():
