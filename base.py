@@ -1,3 +1,4 @@
+from asyncio import gather
 from email.policy import default
 from gc import collect
 from flask import Flask,make_response,jsonify
@@ -201,10 +202,10 @@ def GetTrial():
     content_type = request.headers.get('Content-Type')
     if (content_type == 'application/json'):
         jsonfile = request.json
-        obj=subscribers.objects(HWID=jsonfile["HWID"]).first()
+        obj=upgradedsubscribers.objects(HWID=jsonfile["HWID"]).first()
         if obj==None:
             print(jsonfile["HWID"])
-            sub1=subscribers(HWID=jsonfile["HWID"],custType="Trial",idkey="TrialMaker")
+            sub1=upgradedsubscribers(HWID=jsonfile["HWID"],custType="Trial",idkey="TrialMaker",chaos=True,una=False,gather=False)
             sub1.lastDate=datetime.datetime.now()
             sub1.save()
             return make_response(jsonify(True),201)
