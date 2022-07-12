@@ -7,8 +7,6 @@ from flask_mongoengine import MongoEngine
 import datetime
 import json
 import dns.resolver
-from cryptography.fernet import Fernet
-
 dns.resolver.default_resolver=dns.resolver.Resolver(configure=False)
 dns.resolver.default_resolver.nameservers=['8.8.8.8']
 
@@ -23,9 +21,6 @@ collectionSub=client['myFirstDatabase']["subscribers"]
 collectionReseller=client['myFirstDatabase']["resellers"]
 collectionUpgradedReseller=client['myFirstDatabase']["upgradedresellers"]
 collectionUpgradedSub=client['myFirstDatabase']["upgradedsubscribers"]
-
-key = "WhFa4z-9FZ1fDUYMXdkgwIjxaS17JWHv3BnSQ_82OEw="
-fernet = Fernet(key)
 
 class resellers(db.Document):
     _id=db.ObjectIdField()
@@ -50,7 +45,6 @@ class upgradedresellers(db.Document):
     una=db.FloatField()
     gather=db.FloatField()
     total=db.FloatField()
-    chaos=db.FloatField()
     versionKey=False
     def to_json(self):
         return {
@@ -58,10 +52,9 @@ class upgradedresellers(db.Document):
             "Trial":self.Trial,
             "Subscriber":self.Subscriber,
             "Lifetime":self.Lifetime,
-            "una":self.una,
-            "gather":self.gather,
-            "chaos":self.chaos,
-            "total":self.total
+            "Una":self.una,
+            "Gather":self.gather,
+            "Total":self.total
         }
 class subscribers(db.Document):
     _id=db.ObjectIdField()
@@ -149,18 +142,17 @@ def db_populateUpgraded():
         jsonfile = request.json
         obj=upgradedresellers.objects(idkey=jsonfile["idkey"]).first()
         if obj==None:
-            return make_response(jsonify(False),405)
+            return make_response(jsonify(False),404)
         sub1=upgradedsubscribers.objects(HWID=jsonfile["HWID"]).first()
         if sub1==None:
             sub1=upgradedsubscribers(HWID=jsonfile["HWID"],custType=jsonfile["custType"],idkey=jsonfile["idkey"],chaos=jsonfile["chaos"],gather=jsonfile["gather"],una=jsonfile["una"])
             sub1.lastDate=datetime.datetime.now()
         else:
-            
+            sub1.custType=jsonfile["custType"]
             sub1.idkey=jsonfile["idkey"]
             if jsonfile["una"]:
                 sub1.una=True
             if jsonfile["chaos"]:
-                sub1.custType=jsonfile["custType"]
                 sub1.chaos=True
             if jsonfile["gather"]:
                 sub1.gather=True
@@ -168,22 +160,14 @@ def db_populateUpgraded():
                 sub1.lastDate=datetime.datetime.now()
         sub1.save()
 
-        if not jsonfile["chaos"]:
+        if jsonfile["custType"]=="empty":
             pass
         elif jsonfile["custType"]=="Trial":
-            obj.Trial+=1
+            obj.TrialLeft+=1
         elif jsonfile["custType"]=="Sub":
-            obj.Subscriber+=1
+            obj.SubscribeLeft+=1
         elif jsonfile["custType"]=="Perma":
-            obj.Lifetime+=1
-
-        if jsonfile["una"]:
-            obj.una+=1
-        if jsonfile["chaos"]:
-            obj.chaos+=1
-        if jsonfile["gather"]:
-            obj.gather+=1
-        obj.total+=jsonfile["total"]   
+            obj.LifetimeLeft+=1
         obj.save()
         return make_response(jsonify((obj.to_json()),(sub1.to_json())),201)
     else:
@@ -229,49 +213,6 @@ def getbyHWID():
         return make_response(jsonify(False),201)
     else:
         return 'Content-Type not supported!'
-
-
-@app.route('/upgradedsubscribers/access',methods=['POST'])
-def getbyupgradedHWID():
-    content_type = request.headers.get('Content-Type')
-    if (content_type == 'application/json'):
-        jsonfile = request.json
-        #print(encmessage)
-        #decmessage = fernet.decrypt(encmessage).decode()
-        #print(decmessage)
-        obj=upgradedsubscribers.objects(HWID=jsonfile["HWID"]).first()
-        response=[]
-        if obj==None:
-            return make_response(jsonify(False),404)
-        timeSpent=(datetime.datetime.now()-obj.lastDate).total_seconds()/86400
-        if obj.custType=="Perma" or (obj.custType=="Sub" and timeSpent<30) or (obj.custType=="Trial" and timeSpent<1):
-            encmessage=fernet.encrypt((jsonfile["HWID"]+"CHA").encode())
-        else:
-            encmessage=fernet.encrypt((jsonfile["HWID"]+"FAI").encode())
-        response.append(encmessage.decode())
-        
-        #if obj.una:
-        if True:
-            encmessage=fernet.encrypt((jsonfile["HWID"]+"UNA").encode())
-        else:
-            encmessage=fernet.encrypt((jsonfile["HWID"]+"FAI").encode())
-        response.append(encmessage.decode())
-        
-        #if obj.gather:
-        if True:
-            encmessage=fernet.encrypt((jsonfile["HWID"]+"GAT").encode())
-        else:
-            encmessage=fernet.encrypt((jsonfile["HWID"]+"FAI").encode())
-        response.append(encmessage.decode())
-
-        return make_response(jsonify(response[0],response[1],response[2]),201)
-    else:
-        return 'Content-Type not supported!'
-
-
-
-
-
 @app.route('/subscribers/patch',methods=['PUT'])
 def subpatch():
     content_type = request.headers.get('Content-Type')
@@ -305,7 +246,7 @@ def db_upgradedpopulateReseller():
     obj=subscribers.objects()
     if (content_type == 'application/json'):
         jsonfile = request.json
-        res1=upgradedresellers(idkey=jsonfile["idkey"],Trial=jsonfile["Trial"],Subscriber=jsonfile["Subscriber"],Lifetime=jsonfile["Lifetime"],chaos=jsonfile["chaos"],gather=jsonfile["gather"],una=jsonfile["una"],total=0)
+        res1=upgradedresellers(idkey=jsonfile["idkey"],Trial=jsonfile["Trial"],Subscriber=jsonfile["Subscriber"],Lifetime=jsonfile["Lifetime"],gather=jsonfile["Gather"],una=jsonfile["Una"],total=0)
         res1.save()
         return make_response(jsonify(res1.to_json()),201)
     else:
