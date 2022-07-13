@@ -324,8 +324,15 @@ def copyOver():
 
 
 @app.route('/resellers/<idkey>',methods=['GET'])
-def idkeyreturn(idkey):
+def idkeyupgradedreturn(idkey):
     obj=resellers.objects(idkey=idkey).first()
+    if obj==None:
+        return make_response(jsonify(False),404)
+    return make_response(jsonify(obj.to_json()),201)
+
+@app.route('/upgradedresellers/<idkey>',methods=['GET'])
+def idkeyreturn(idkey):
+    obj=upgradedresellers.objects(idkey=idkey).first()
     if obj==None:
         return make_response(jsonify(False),404)
     return make_response(jsonify(obj.to_json()),201)
