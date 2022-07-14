@@ -1,5 +1,6 @@
 from asyncio import gather
 from email.policy import default
+from ensurepip import version
 from gc import collect
 from flask import Flask,make_response,jsonify
 from flask import request 
@@ -100,7 +101,18 @@ class upgradedsubscribers(db.Document):
             "gather":self.gather,
             "state":self.state
         }
-        
+   
+class updater(db.Document):
+    _id=db.ObjectIdField()
+    link=db.StringField()
+    version=db.StringField()
+    versionKey=False
+    def to_json(self):
+        return {
+            "link": self.link,
+            "version":self.version
+        }
+
 @app.route('/subscribers/testing',methods=['POST'])
 def db_populate():
     print(datetime.datetime.now())
@@ -196,6 +208,31 @@ def HWIDExists(HWID):
     if obj==None:
         return make_response(jsonify(False),404)
     return make_response(jsonify(True),201)
+
+@app.route('/updater/',methods=['GET'])
+def updatercurrent():
+    obj=updater.objects().first()
+    if obj==None:
+        return make_response(jsonify(False),404)
+    return make_response(jsonify(obj.to_json()),201)
+
+@app.route('/updater/add',methods=['POST'])
+def updaterpopulate():
+    content_type = request.headers.get('Content-Type')
+    jsonfile = request.json
+    obj=updater(link=jsonfile["link"],version=jsonfile["version"])
+    obj.save()
+    return make_response(jsonify(obj.to_json()),201)
+
+@app.route('/updater/change',methods=['POST'])
+def updaterchange():
+    content_type = request.headers.get('Content-Type')
+    jsonfile = request.json
+    obj=updater.objects().first()
+    obj.link=jsonfile["link"]
+    obj.version=jsonfile["version"]
+    obj.save()
+    return make_response(jsonify(obj.to_json()),201)
 
 @app.route('/trial/',methods=['POST'])
 def GetTrial():
