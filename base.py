@@ -288,8 +288,8 @@ def getbyupgradedHWID():
             encmessage=fernet.encrypt((jsonfile["HWID"]+"FAI").encode())
         response.append(encmessage.decode())
         
-        #if obj.una:
-        if True:
+        if obj.una:
+        #if True:
             encmessage=fernet.encrypt((jsonfile["HWID"]+"UNA").encode())
         else:
             encmessage=fernet.encrypt((jsonfile["HWID"]+"FAI").encode())
