@@ -242,7 +242,7 @@ def GetTrial():
         obj=upgradedsubscribers.objects(HWID=jsonfile["HWID"]).first()
         if obj==None:
             print(jsonfile["HWID"])
-            sub1=upgradedsubscribers(HWID=jsonfile["HWID"],custType="Trial",idkey="TrialMaker",chaos=True,una=False,gather=False)
+            sub1=upgradedsubscribers(HWID=jsonfile["HWID"],custType="Trial",idkey="TrialMaker",chaos=True,una=True,gather=True)
             sub1.lastDate=datetime.datetime.now()
             sub1.save()
             return make_response(jsonify(True),201)
@@ -250,6 +250,20 @@ def GetTrial():
             return make_response(jsonify(False),201)
     else:
         return 'Content-Type not supported!'
+
+@app.route('/trial/getAll',methods=['GET'])
+def GetAllTrials():
+    objects=upgradedsubscribers.objects(custType="Trial")
+    for obj in objects:
+        print(obj.idkey,"--",obj.custType,"--",obj.HWID,"--")
+        #obj.HWID=" "
+        print(obj.idkey,"--",obj.custType,"--",obj.HWID,"--")
+        #obj.save()
+        print(obj.idkey,"--",obj.custType,"--",obj.HWID,"--")
+        collectionUpgradedSub.delete_one({"HWID":obj.HWID})
+
+
+
 
 
 @app.route('/subscribers/test',methods=['POST'])
@@ -288,6 +302,11 @@ def getbyupgradedHWID():
             encmessage=fernet.encrypt((jsonfile["HWID"]+"FAI").encode())
         response.append(encmessage.decode())
         
+        if obj.una and (obj.custType=="Trial" and timeSpent>1):
+            obj.una=False
+            obj.gather=False
+            obj.save()
+
         if obj.una:
         #if True:
             encmessage=fernet.encrypt((jsonfile["HWID"]+"UNA").encode())
