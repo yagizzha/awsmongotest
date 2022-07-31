@@ -102,6 +102,25 @@ class upgradedsubscribers(db.Document):
             "state":self.state
         }
    
+class customsubscribers(db.Document):
+    _id=db.ObjectIdField()
+    HWID=db.StringField()
+    custType=db.StringField()
+    cust=db.StringField()
+    type=db.StringField()
+    idkey=db.StringField()
+    lastDate=db.DateTimeField(default=datetime.datetime.now())
+
+    versionKey=False
+    def to_json(self):
+        return {
+            "HWID": self.HWID,
+            "custType":self.custType,
+            "cust":self.cust,
+            "type":self.type,
+            "idkey":self.idkey,
+            "lastDate":self.lastDate
+        }
 class updater(db.Document):
     _id=db.ObjectIdField()
     link=db.StringField()
@@ -202,6 +221,29 @@ def db_populateUpgraded():
     else:
         return 'Content-Type not supported!'
 
+@app.route('/customsubscribers/populate',methods=['POST'])
+def db_populateCustom():
+    print(datetime.datetime.now())
+    content_type = request.headers.get('Content-Type')
+    if (content_type == 'application/json'):
+        jsonfile = request.json
+        obj=upgradedresellers.objects(idkey=jsonfile["idkey"]).first()
+        if obj==None:
+            return make_response(jsonify(False),405)
+        sub1=customsubscribers.objects(HWID=jsonfile["HWID"]).first()
+        if sub1==None:
+            sub1=customsubscribers(HWID=jsonfile["HWID"],custType=jsonfile["custType"],cust=jsonfile["cust"],type=jsonfile["type"],idkey=jsonfile["idkey"])
+            sub1.lastDate=datetime.datetime.now()
+        else:
+            pass
+        sub1.save()
+        obj.save()
+        return make_response(jsonify((obj.to_json()),(sub1.to_json())),201)
+    else:
+        return 'Content-Type not supported!'
+
+
+
 @app.route('/subscribers/<HWID>',methods=['GET'])
 def HWIDExists(HWID):
     obj=subscribers.objects(HWID=HWID).first()
@@ -251,6 +293,8 @@ def GetTrial():
     else:
         return 'Content-Type not supported!'
 
+        
+"""
 @app.route('/trial/getAll',methods=['GET'])
 def GetAllTrials():
     objects=upgradedsubscribers.objects(custType="Trial")
@@ -261,7 +305,7 @@ def GetAllTrials():
         #obj.save()
         print(obj.idkey,"--",obj.custType,"--",obj.HWID,"--")
         collectionUpgradedSub.delete_one({"HWID":obj.HWID})
-
+"""
 
 
 
@@ -325,6 +369,27 @@ def getbyupgradedHWID():
     else:
         return 'Content-Type not supported!'
 
+@app.route('/customsubscribers/access',methods=['POST'])
+def getbycustomHWID():
+    content_type = request.headers.get('Content-Type')
+    if (content_type == 'application/json'):
+        jsonfile = request.json
+        obj=customsubscribers.objects(HWID=jsonfile["HWID"]).first()
+        response=[]
+        if obj==None or obj.type!=jsonfile["type"]:
+            return make_response(jsonify(False),404)
+        timeSpent=(datetime.datetime.now()-obj.lastDate).total_seconds()/86400
+        if obj.custType=="Perma" or (obj.custType=="Sub" and timeSpent<30) or (obj.custType=="Trial" and timeSpent<1):
+            encmessage=fernet.encrypt((jsonfile["HWID"]+"CUS").encode())
+            print("Succ")
+        else:
+            encmessage=fernet.encrypt((jsonfile["HWID"]+"FAI").encode())
+            print("SFAc")
+        response.append(encmessage.decode())
+
+        return make_response(jsonify(response[0]),201)
+    else:
+        return 'Content-Type not supported!'
 
 
 
