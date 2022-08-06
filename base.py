@@ -187,7 +187,9 @@ def db_populateUpgraded():
             sub1=upgradedsubscribers(HWID=jsonfile["HWID"],custType=jsonfile["custType"],idkey=jsonfile["idkey"],chaos=jsonfile["chaos"],gather=jsonfile["gather"],una=jsonfile["una"])
             sub1.lastDate=datetime.datetime.now()
         else:
-            
+            if sub1.custType=="Trial":
+                sub1.una=False
+                sub1.gather=False
             sub1.idkey=jsonfile["idkey"]
             if jsonfile["una"]:
                 sub1.una=True
@@ -424,12 +426,22 @@ def db_populateReseller():
 @app.route('/upgradedresellers',methods=['POST'])
 def db_upgradedpopulateReseller():
     content_type = request.headers.get('Content-Type')
-    obj=subscribers.objects()
     if (content_type == 'application/json'):
         jsonfile = request.json
-        res1=upgradedresellers(idkey=jsonfile["idkey"],Trial=jsonfile["Trial"],Subscriber=jsonfile["Subscriber"],Lifetime=jsonfile["Lifetime"],chaos=jsonfile["chaos"],gather=jsonfile["gather"],una=jsonfile["una"],total=0)
-        res1.save()
-        return make_response(jsonify(res1.to_json()),201)
+        sub1=upgradedresellers.objects(idkey=jsonfile["idkey"]).first()
+        if sub1==None:
+            sub1=upgradedresellers(idkey=jsonfile["idkey"],Trial=jsonfile["Trial"],Subscriber=jsonfile["Subscriber"],Lifetime=jsonfile["Lifetime"],chaos=jsonfile["chaos"],gather=jsonfile["gather"],una=jsonfile["una"],total=0)
+            sub1.save()
+        else:
+            sub1.Trial=jsonfile["Trial"]
+            sub1.Subscriber=jsonfile["Subscriber"]
+            sub1.Lifetime=jsonfile["Lifetime"]
+            sub1.chaos=jsonfile["chaos"]
+            sub1.gather=jsonfile["gather"]
+            sub1.una=jsonfile["una"]
+            sub1.total=0
+            sub1.save()
+        return make_response(jsonify(sub1.to_json()),201)
     else:
         return 'Content-Type not supported!'
 
