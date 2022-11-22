@@ -223,6 +223,75 @@ def db_populateUpgraded():
     else:
         return 'Content-Type not supported!'
 
+@app.route('/upgradedsubscribers/dereseller',methods=['POST'])
+def db_populatedeUpgraded():
+    print(datetime.datetime.now())
+    content_type = request.headers.get('Content-Type')
+    if (content_type == 'application/json'):
+        jsonfile = request.json
+        obj=upgradedresellers.objects(idkey=jsonfile["idkey"]).first()
+        if obj==None:
+            return make_response(jsonify(False),405)
+        sub1=upgradedsubscribers.objects(HWID=jsonfile["HWID"]).first()
+
+        if not jsonfile["chaos"]:
+            pass
+        elif jsonfile["custType"]=="Trial":
+            if obj.Trial>0:
+                obj.Trial-=1
+            else:
+                return make_response(jsonify(False),405)
+        elif jsonfile["custType"]=="Sub":
+            if obj.Subscriber>0:
+                obj.Subscriber-=1
+            else:
+                return make_response(jsonify(False),405)
+        elif jsonfile["custType"]=="Perma":
+            if obj.Lifetime>0:
+                obj.Lifetime-=1
+            else:
+                return make_response(jsonify(False),405)
+
+        if jsonfile["una"]:
+            if obj.una>0:
+                obj.una-=1
+            else:
+                return make_response(jsonify(False),405)
+        if jsonfile["chaos"]:
+            if obj.chaos>0:
+                obj.chaos-=1
+            else:
+                return make_response(jsonify(False),405)
+        if jsonfile["gather"]:
+            if obj.gather>0:
+                obj.gather-=1
+            else:
+                return make_response(jsonify(False),405)
+        obj.total+=jsonfile["total"]   
+
+        if sub1==None:
+            sub1=upgradedsubscribers(HWID=jsonfile["HWID"],custType=jsonfile["custType"],idkey=jsonfile["idkey"],chaos=jsonfile["chaos"],gather=jsonfile["gather"],una=jsonfile["una"])
+            sub1.lastDate=datetime.datetime.now()
+        else:
+            if sub1.custType=="Trial":
+                sub1.una=False
+                sub1.gather=False
+            sub1.idkey=jsonfile["idkey"]
+            if jsonfile["una"]:
+                sub1.una=True
+            if jsonfile["chaos"]:
+                sub1.custType=jsonfile["custType"]
+                sub1.chaos=True
+            if jsonfile["gather"]:
+                sub1.gather=True
+            if jsonfile["custType"]=="Sub":
+                sub1.lastDate=datetime.datetime.now()
+        sub1.save()
+        obj.save()
+        return make_response(jsonify((obj.to_json()),(sub1.to_json())),201)
+    else:
+        return 'Content-Type not supported!'
+
 @app.route('/customsubscribers/populate',methods=['POST'])
 def db_populateCustom():
     print(datetime.datetime.now())
