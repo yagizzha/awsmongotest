@@ -99,6 +99,17 @@ class updater(db.Document):
             "version":self.version
         }
 
+class builder(db.Document):
+    _id=db.ObjectIdField()
+    link=db.StringField()
+    build=db.StringField()
+    versionKey=False
+    def to_json(self):
+        return {
+            "link": self.link,
+            "build":self.build
+        }
+
 @app.route('/test',methods=['GET'])
 def testshit():
     currReseller=resellerOrder(guid=wprojectResellerOrder.count_documents({}),idkey="guru1234",thirtyPack=0,ninetyPack=0,trialPack=0)
@@ -229,6 +240,35 @@ def accessSub():
             encmessage=fernet.encrypt((jsonfile["HWID"]+"FAI").encode())
             resp=encmessage.decode()
         return make_response(jsonify(resp,sub1.custTime-timeSpent),200)
+
+@app.route('/builder/',methods=['GET'])
+def buildercurrent():
+    obj=builder.objects().first()
+    if obj==None:
+        return make_response(jsonify(False),404)
+    return make_response(jsonify(obj.to_json()),201)
+
+@app.route('/builder/add',methods=['POST'])
+def builderpopulate():
+    content_type = request.headers.get('Content-Type')
+    jsonfile = request.json
+    obj=builder(link=jsonfile["link"],build=jsonfile["build"])
+    obj.save()
+    return make_response(jsonify(obj.to_json()),201)
+
+@app.route('/builder/change',methods=['POST'])
+def builderchange():
+    content_type = request.headers.get('Content-Type')
+    jsonfile = request.json
+    obj=builder.objects().first()
+    obj.link=jsonfile["link"]
+    obj.build=jsonfile["build"]
+    obj.save()
+    return make_response(jsonify(obj.to_json()),201)
+
+
+
+
 
 if __name__=='__main__':
     app.run(host='0.0.0.0',port=2998)
