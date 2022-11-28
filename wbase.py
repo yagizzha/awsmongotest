@@ -233,7 +233,9 @@ def accessSub():
         return make_response(jsonify(resp,0),200)
     else:
         timeSpent=(datetime.datetime.now()-sub1.lastDate).total_seconds()/86400
-        return make_response(jsonify(resp,99999),200)
+        encmessage=fernet.encrypt((jsonfile["HWID"]+"SUC").encode())
+        resp=encmessage.decode()
+        return make_response(jsonify(resp,9999),200)
         if timeSpent<sub1.custTime:
             encmessage=fernet.encrypt((jsonfile["HWID"]+"SUC").encode())
             resp=encmessage.decode()
