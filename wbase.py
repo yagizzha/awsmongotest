@@ -125,7 +125,7 @@ def testshit():
                 resellerOrders=[currReseller2.guid,currReseller3.guid],
                 currentResellerOrder=currReseller.guid)
     test.save()
-    print(currReseller.guid)
+    #print(currReseller.guid)
     return make_response(jsonify(test.to_json()),201)
 
 def newResellerOrder(idkey):

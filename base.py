@@ -134,7 +134,7 @@ class updater(db.Document):
 
 @app.route('/subscribers/testing',methods=['POST'])
 def db_populate():
-    print(datetime.datetime.now())
+    #print(datetime.datetime.now())
     content_type = request.headers.get('Content-Type')
     if (content_type == 'application/json'):
         jsonfile = request.json
@@ -175,7 +175,7 @@ def db_populate():
 
 @app.route('/upgradedsubscribers/populate',methods=['POST'])
 def db_populateUpgraded():
-    print(datetime.datetime.now())
+    #print(datetime.datetime.now())
     content_type = request.headers.get('Content-Type')
     if (content_type == 'application/json'):
         jsonfile = request.json
@@ -225,7 +225,7 @@ def db_populateUpgraded():
 
 @app.route('/upgradedsubscribers/dereseller',methods=['POST'])
 def db_populatedeUpgraded():
-    print(datetime.datetime.now())
+    #print(datetime.datetime.now())
     content_type = request.headers.get('Content-Type')
     if (content_type == 'application/json'):
         jsonfile = request.json
@@ -294,7 +294,7 @@ def db_populatedeUpgraded():
 
 @app.route('/customsubscribers/populate',methods=['POST'])
 def db_populateCustom():
-    print(datetime.datetime.now())
+    #print(datetime.datetime.now())
     content_type = request.headers.get('Content-Type')
     if (content_type == 'application/json'):
         jsonfile = request.json
@@ -354,7 +354,7 @@ def GetTrial():
         jsonfile = request.json
         obj=upgradedsubscribers.objects(HWID=jsonfile["HWID"]).first()
         if obj==None:
-            print(jsonfile["HWID"])
+            #print(jsonfile["HWID"])
             sub1=upgradedsubscribers(HWID=jsonfile["HWID"],custType="Trial",idkey="TrialMaker",chaos=True,una=True,gather=True)
             sub1.lastDate=datetime.datetime.now()
             sub1.save()
@@ -370,11 +370,11 @@ def GetTrial():
 def GetAllTrials():
     objects=upgradedsubscribers.objects(custType="Trial")
     for obj in objects:
-        print(obj.idkey,"--",obj.custType,"--",obj.HWID,"--")
+        #print(obj.idkey,"--",obj.custType,"--",obj.HWID,"--")
         #obj.HWID=" "
-        print(obj.idkey,"--",obj.custType,"--",obj.HWID,"--")
+        #print(obj.idkey,"--",obj.custType,"--",obj.HWID,"--")
         #obj.save()
-        print(obj.idkey,"--",obj.custType,"--",obj.HWID,"--")
+        #print(obj.idkey,"--",obj.custType,"--",obj.HWID,"--")
         collectionUpgradedSub.delete_one({"HWID":obj.HWID})
 """
 
@@ -386,7 +386,7 @@ def getbyHWID():
     content_type = request.headers.get('Content-Type')
     if (content_type == 'application/json'):
         jsonfile = request.json
-        print(jsonfile["HWID"])
+        #print(jsonfile["HWID"])
         obj=subscribers.objects(HWID=jsonfile["HWID"]).first()
         if obj==None:
             return make_response(jsonify(False),404)
@@ -452,10 +452,10 @@ def getbycustomHWID():
         timeSpent=(datetime.datetime.now()-obj.lastDate).total_seconds()/86400
         if obj.custType=="Perma" or (obj.custType=="Sub" and timeSpent<30) or (obj.custType=="Trial" and timeSpent<1):
             encmessage=fernet.encrypt((jsonfile["HWID"]+"CUS").encode())
-            print("Succ")
+            #print("Succ")
         else:
             encmessage=fernet.encrypt((jsonfile["HWID"]+"FAI").encode())
-            print("SFAc")
+            #print("SFAc")
         response.append(encmessage.decode())
 
         return make_response(jsonify(response[0]),201)
@@ -518,7 +518,7 @@ def db_upgradedpopulateReseller():
 def copyOver():
     obj=subscribers.objects()
     for i in range(len(obj)):
-        print(obj[i].HWID)
+        #print(obj[i].HWID)
         currUpgSub=upgradedsubscribers(HWID=obj[i].HWID,custType=obj[i].custType,idkey=obj[i].idkey,lastDate=obj[i].lastDate,chaos=True,una=False,gather=False)
         currUpgSub.save()
     return make_response(jsonify(True),201)
